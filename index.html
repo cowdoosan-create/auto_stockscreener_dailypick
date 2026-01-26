@@ -4,92 +4,51 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
   <title>YJ K-Stock Quant Unified Dashboard</title>
-  
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
   <style>
     :root{
       --bg:#0b1220; --panel:#0f1a2e; --panel2:#0c1628; --line:rgba(148,163,184,.18);
       --txt:#e5e7eb; --muted:#94a3b8; --good:#34d399; --bad:#fb7185; --warn:#fbbf24;
       --accent:#60a5fa; --radius:16px;
       --vh: 1vh;
-      --sat: env(safe-area-inset-top);
-      --sab: env(safe-area-inset-bottom);
-      --sal: env(safe-area-inset-left);
-      --sar: env(safe-area-inset-right);
+      --sat: env(safe-area-inset-top); --sab: env(safe-area-inset-bottom);
+      --sal: env(safe-area-inset-left); --sar: env(safe-area-inset-right);
     }
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-    
     body{ 
       margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
       background: var(--bg); color:var(--txt); overflow:hidden; 
       height: 100vh; height: calc(var(--vh, 1vh) * 100); touch-action: manipulation;
       padding-top: var(--sat); padding-bottom: var(--sab); padding-left: var(--sal); padding-right: var(--sar);
     }
-    
     .app{ display:flex; flex-direction:column; height:100%; }
     .header-section { flex-shrink: 0; z-index: 100; background: var(--bg); }
-    
-    .tabbar { 
-      margin: 15px 20px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; 
-      overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-right: 20px; 
-    }
+    .tabbar { margin: 15px 20px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-right: 20px; }
     .tabbar::-webkit-scrollbar { display: none; }
-    
-    .tab-btn { 
-      padding: 10px 18px; border-radius: 10px; border: 1px solid var(--line);
-      background: var(--panel); color: #fff; font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: 0.2s; white-space: nowrap; flex-shrink: 0;
-    }
-    .tab-btn.on { 
-      background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: #60a5fa;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); 
-    }
-
+    .tab-btn { padding: 10px 18px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
+    .tab-btn.on { background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: #60a5fa; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
     #perfFilterGroup { display: none; align-items: center; gap: 6px; margin-left: 5px; padding-left: 15px; border-left: 1px solid var(--line); animation: fadeIn 0.3s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
-
-    .filter-btn {
-      background: var(--panel2); border: 1px solid var(--line); color: var(--muted);
-      padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
-      cursor: pointer; transition: 0.2s; white-space: nowrap; flex-shrink: 0;
-    }
-    .filter-btn.active { background: var(--txt); color: var(--bg) !important; border-color: var(--txt) !important; }
-    
-    /* Main Layout */
+    .filter-btn { background: var(--panel2); border: 1px solid var(--line); color: var(--muted); padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
+    .filter-btn.active { background: var(--txt); color: var(--bg) !important; border-color: var(--txt) !important; box-shadow: 0 0 8px rgba(255,255,255,0.2); }
     .main{ flex:1; display:flex; overflow:hidden; padding: 0 20px 20px 20px; gap:20px; }
+    @media (max-width: 1024px) { .main { flex-direction: column; overflow-y: auto; padding: 0 12px 12px 12px; gap: 12px; } .content-area, #detailPanel { flex: none !important; width: 100% !important; height: auto !important; } #detailPanel { min-height: 520px; margin-bottom: 20px; } }
     .content-area { flex: 1.3; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-    
-    #detailPanel {
-      flex: 0.7; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); 
-      display: none; flex-direction: column; overflow: hidden; animation: slideIn 0.3s ease-out;
-    }
+    #detailPanel { flex: 0.7; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); display: none; flex-direction: column; overflow: hidden; animation: slideIn 0.3s ease-out; }
     @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-
-    @media (max-width: 1024px) {
-      .main { flex-direction: column; overflow-y: auto; padding: 0 12px 12px 12px; gap: 12px; }
-      .content-area, #detailPanel { flex: none !important; width: 100% !important; height: auto !important; }
-      #detailPanel { min-height: 520px; margin-bottom: 20px; }
-    }
-
-    /* Tables & Cards */
     .custom-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-
-    .table-container {
-      flex: 1; background: var(--panel2); border-radius: var(--radius); border: 1px solid var(--line);
-      position: relative; display: flex; flex-direction: column; overflow: hidden;
-    }
+    .table-container { flex: 1; background: var(--panel2); border-radius: var(--radius); border: 1px solid var(--line); position: relative; display: flex; flex-direction: column; overflow: hidden; }
+    .table-responsive { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
     table { width:100%; border-collapse:collapse; font-size:12px; min-width:820px; table-layout: fixed; }
-    th { background: #162136; color: var(--muted); padding: 12px 6px; text-align:left; position: sticky; top: 0; z-index: 20; border-bottom: 2px solid var(--accent); }
-    td { padding: 10px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     tr.clickable:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
-    
-    .card { border:1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 10px; cursor: pointer; transition: 0.2s; }
-    .card:hover { border-color: var(--accent); transform: translateY(-1px); }
-
+    th { background: #162136; color: var(--muted); padding: 12px 6px; text-align:left; position: sticky; top: 0; z-index: 20; border-bottom: 2px solid var(--accent); white-space: nowrap; }
+    td { padding: 10px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .numRight { text-align:right; font-family: 'Roboto Mono', monospace; }
+    .col-code { width: 60px; } .col-name { width: 110px; } .col-price { width: 85px; } .col-rsi { width: 60px; } .col-stoch { width: 65px; } .col-turn { width: 85px; } .col-sig { width: 140px; } .col-date { width: 85px; } .col-perf { width: 70px; }
+    .mini-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; width: 100%; max-width: 520px; flex-shrink: 0; display: block; overflow-x: auto; }
+    .mini-card h4 { margin: 0 0 8px 0; font-size: 12px; font-weight: 800; color: var(--bad); border-bottom: 1px solid var(--line); padding-bottom: 5px; }
     .badge-sig { display: inline-flex; align-items: center; padding: 1px 3px; border-radius: 8px; font-size: 9px; font-weight: 800; margin-right: 1px; }
     .sig-trend { background: rgba(16, 185, 129, 0.15); color: #34d399; }
     .sig-pullback { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
@@ -97,17 +56,13 @@
     .type-profit { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
     .type-winrate { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
     .type-hidden { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-
+    .card { border:1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 10px; cursor: pointer; transition: 0.2s; }
+    .card:hover { border-color: var(--accent); transform: translateY(-1px); }
     /* Insight Grid */
     .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: 100%; overflow-y: auto; padding-bottom: 20px; }
     .insight-card { background: var(--panel2); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; }
-    .insight-title { font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
     .chart-box { flex: 1; min-height: 250px; position: relative; }
     @media (max-width: 768px) { .insight-grid { grid-template-columns: 1fr; } }
-
-    /* Column Widths */
-    .col-code { width: 60px; } .col-name { width: 110px; } .col-price { width: 85px; } .col-sig { width: 140px; } 
-    .col-date { width: 85px; } .col-perf { width: 70px; }
   </style>
 </head>
 <body>
@@ -116,20 +71,15 @@
     <div style="padding: 12px 20px; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; background: rgba(15,26,46,0.95);">
       <div style="display:flex; align-items:center; gap:10px;">
         <div style="width:32px; height:32px; background:linear-gradient(135deg, #3b82f6, #10b981); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:18px;">Q</div>
-        <div>
-          <div style="font-size: 16px; font-weight:800; color:#fff;">YJ K-STOCK QUANT</div>
-          <div id="statusLine" style="font-size: 10px; color: var(--muted);">Unified System V11.1</div>
-        </div>
+        <div><div style="font-size: 16px; font-weight:800; color:#fff;">YJ K-STOCK QUANT</div><div id="statusLine" style="font-size: 10px; color: var(--muted);">데이터 동기화 대기 중...</div></div>
       </div>
       <button style="padding: 8px 16px; border-radius: 8px; background: rgba(52, 211, 153, 0.1); border:1px solid rgba(52, 211, 153, 0.3); color:#34d399; font-weight:bold; cursor:pointer; font-size:12px;" id="btnRefresh">🔄 데이터 갱신</button>
     </div>
-
     <div class="tabbar">
       <button class="tab-btn on" onclick="setTab('screen')" id="tab-screen">🔎 실시간 포착</button>
-      <button class="tab-btn" onclick="setTab('daily')" id="tab-daily">📅 Dailypick (로그)</button>
+      <button class="tab-btn" onclick="setTab('daily')" id="tab-daily">📅 Dailypick</button>
       <button class="tab-btn" onclick="setTab('perf')" id="tab-perf">📊 성과 추적</button>
-      <button class="tab-btn" onclick="setTab('insight')" id="tab-insight" style="border-color: var(--accent); background: rgba(96, 165, 250, 0.1);">🧠 AI Insight</button>
-      
+      <button class="tab-btn" onclick="setTab('insight')" id="tab-insight" style="background:rgba(96,165,250,0.1)">🧠 AI Insight</button>
       <div id="perfFilterGroup">
         <button class="filter-btn active" onclick="setPerfFilter('ALL', this)">전체</button>
         <button class="filter-btn" onclick="setPerfFilter('TREND', this)">추세</button>
@@ -141,7 +91,6 @@
   
   <div class="main">
     <div class="content-area">
-      
       <section id="view-screen" style="display:flex; flex-direction:column; height:100%;">
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:15px; flex-shrink: 0;">
           <div class="card" onclick="switchList('ALL')"><div style="font-size:10px; color:var(--muted);">전체</div><div style="font-size:20px; font-weight:800;" id="statAll">-</div></div>
@@ -150,12 +99,12 @@
           <div class="card" onclick="switchList('BREAKOUT')"><div style="font-size:10px; color:#fb7185;">돌파</div><div style="font-size:20px; font-weight:800; color:#fb7185;" id="statBreakout">-</div></div>
         </div>
         <div class="table-container">
-          <div style="padding: 12px 15px; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.02); z-index: 30;">
-             <span id="listTitle" style="font-weight:700; font-size:14px; color:var(--accent);">리스트: 전체보기</span>
+          <div style="padding:12px 15px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;">
+            <span id="listTitle" style="font-weight:700; font-size:14px; color:var(--accent);">리스트: 전체보기</span>
           </div>
           <div class="table-responsive custom-scroll">
-            <table id="mainTable">
-              <thead><tr><th class="col-code">코드</th><th class="col-name">종목명</th><th class="col-price numRight">현재가</th><th class="col-rsi numRight">RSI</th><th class="col-stoch numRight">Stoch</th><th class="col-turn numRight">거래대금</th><th class="col-sig">시그널</th></tr></thead>
+            <table>
+              <thead><tr><th class="col-code">코드</th><th class="col-name">종목명</th><th class="numRight">현재가</th><th class="numRight">RSI</th><th class="numRight">Stoch</th><th class="numRight">거래대금</th><th style="text-align:center">시그널</th></tr></thead>
               <tbody id="screenTbody"></tbody>
             </table>
           </div>
@@ -165,8 +114,8 @@
       <section id="view-daily" style="display:none; flex-direction:column; height:100%;">
         <div class="table-container">
           <div class="table-responsive custom-scroll">
-            <table style="min-width: 1200px;">
-              <thead><tr><th class="col-date">Pick일자</th><th>Type</th><th class="col-code">코드</th><th class="col-name">종목명</th><th class="numRight">진입가</th><th class="numRight" style="color:var(--good)">목표1</th><th class="numRight" style="color:var(--bad)">손절1</th><th class="numRight">현재가</th><th class="numRight">수익률</th><th class="numRight">D1</th><th class="numRight">D3</th><th class="numRight">D5</th></tr></thead>
+            <table style="min-width:1200px;">
+              <thead><tr><th>Pick일자</th><th>Type</th><th>코드</th><th>종목명</th><th class="numRight">진입가</th><th class="numRight" style="color:var(--good)">목표1</th><th class="numRight" style="color:var(--bad)">손절1</th><th class="numRight">현재가</th><th class="numRight">수익률</th><th class="numRight">D1</th><th class="numRight">D3</th><th class="numRight">D5</th></tr></thead>
               <tbody id="dailyTbody"></tbody>
             </table>
           </div>
@@ -174,10 +123,11 @@
       </section>
 
       <section id="view-perf" style="display:none; flex-direction:column; height:100%;">
+        <div class="top-stats-container"><div class="mini-card"><h4 id="bestTitle">🔥 수익률 Best 5 (전체)</h4><table class="mini-table"><thead><tr><th>포착일</th><th>종목명</th><th>시그널</th><th style="text-align:right">수익률</th></tr></thead><tbody id="bestTbody"></tbody></table></div></div>
         <div class="table-container">
           <div class="table-responsive custom-scroll">
             <table>
-              <thead><tr><th class="col-date">포착일</th><th class="col-code">코드</th><th class="col-name">종목명</th><th class="col-sig">시그널</th><th class="numRight">포착가</th><th class="numRight">현재가</th><th class="numRight">수익률</th><th class="numRight">D1</th><th class="numRight">D3</th><th class="numRight">D5</th></tr></thead>
+              <thead><tr><th>포착일</th><th>코드</th><th>종목명</th><th style="text-align:center">시그널</th><th class="numRight">포착가</th><th class="numRight">현재가</th><th class="numRight">수익률</th><th class="numRight">D1</th><th class="numRight">D3</th><th class="numRight">D5</th></tr></thead>
               <tbody id="perfTbody"></tbody>
             </table>
           </div>
@@ -186,38 +136,24 @@
 
       <section id="view-insight" style="display:none; flex-direction:column; height:100%;">
         <div class="insight-grid custom-scroll">
-          
-          <div class="insight-card">
-            <div class="insight-title">📊 전략별 승률 (Win Rate)</div>
-            <div class="chart-box"><canvas id="chartWinRate"></canvas></div>
-          </div>
-
-          <div class="insight-card">
-            <div class="insight-title">💰 전략별 평균 수익 (Avg Return)</div>
-            <div class="chart-box"><canvas id="chartAvgReturn"></canvas></div>
-          </div>
-
-          <div class="insight-card" style="grid-column: span 2;">
-            <div class="insight-title">📈 보유 기간별 수익 추이 (D1 ~ D9)</div>
-            <div class="chart-box"><canvas id="chartTimeSeries"></canvas></div>
-          </div>
-
+          <div class="insight-card"><div style="margin-bottom:10px; font-weight:700;">📊 전략별 승률</div><div class="chart-box"><canvas id="chartWinRate"></canvas></div></div>
+          <div class="insight-card"><div style="margin-bottom:10px; font-weight:700;">💰 전략별 평균 수익</div><div class="chart-box"><canvas id="chartAvgReturn"></canvas></div></div>
+          <div class="insight-card" style="grid-column: span 2;"><div style="margin-bottom:10px; font-weight:700;">📈 기간별 수익 추이</div><div class="chart-box"><canvas id="chartTimeSeries"></canvas></div></div>
         </div>
       </section>
-
     </div>
 
     <div id="detailPanel">
-      <div style="padding: 15px 20px; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; background:var(--panel2); flex-shrink: 0;">
-        <div><span id="detailCode" style="font-family:monospace; font-size:12px; color:var(--accent); display:block; margin-bottom:2px;">CODE</span><b id="detailName" style="font-size:18px;">종목 선택</b></div>
-        <button onclick="closeDetail()" style="background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer;">✕</button>
+      <div style="padding:15px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between;">
+        <div><span id="detailCode" style="font-size:12px; color:var(--accent);">CODE</span><br><b id="detailName" style="font-size:18px;">종목</b></div>
+        <button onclick="document.getElementById('detailPanel').style.display='none'" style="background:none; border:none; color:#fff; font-size:20px;">✕</button>
       </div>
-      <div style="padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px; background:rgba(255,255,255,0.02); flex-shrink:0;">
+      <div style="padding:15px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div><div style="font-size:11px; color:var(--muted)">현재가</div><div id="valPrice" style="font-size:16px; font-weight:700;">-</div></div>
         <div><div style="font-size:11px; color:var(--muted)">RSI</div><div id="valRSI" style="font-size:16px; font-weight:700;">-</div></div>
-        <div style="grid-column:span 2"><div style="font-size:11px; color:var(--muted)">시그널</div><div id="valSignals" style="margin-top:4px;">-</div></div>
+        <div style="grid-column:span 2"><div id="valSignals">-</div></div>
       </div>
-      <div id="chartContainer" style="flex:1; background:#000; border-top:1px solid var(--line);"></div>
+      <div id="chartContainer" style="flex:1; background:#000;"></div>
     </div>
   </div>
 </div>
@@ -230,17 +166,15 @@ const URLS = {
   PULLBACK: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=852505203&single=true&output=csv",
   BREAKOUT: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=258627301&single=true&output=csv",
   STORAGE: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=2034892211&single=true&output=csv",
-  // Dailypick 시트 링크 (성과 업데이트 자동화 버전)
   DAILY: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=1927472233&single=true&output=csv"
 };
 
-let data = {};
+let data = { ALL:[], TREND:[], PULLBACK:[], BREAKOUT:[], STORAGE:[], DAILY:[] };
 let currentTab = 'screen';
 let currentMode = 'ALL';
 let perfFilter = 'ALL';
 let charts = {};
 
-// CSV Parser
 function parseCSV(text) {
   if(!text) return [];
   const rows = [];
@@ -267,7 +201,6 @@ function parseCSV(text) {
   });
 }
 
-// Formatters
 const fmt = {
   price: n => isNaN(parseFloat(String(n).replace(/[^-0-9.]/g,""))) ? "-" : Number(String(n).replace(/[^-0-9.]/g,"")).toLocaleString(),
   turn: n => isNaN(parseFloat(String(n).replace(/[^-0-9.]/g,""))) ? "-" : Math.floor(Number(String(n).replace(/[^-0-9.]/g,""))/100000000).toLocaleString()+"억",
@@ -279,36 +212,19 @@ const fmt = {
   color: n => {
     let v = parseFloat(String(n).replace('%',''));
     if(isNaN(v)) return "inherit";
-    return v > 0 ? "var(--bad)" : (v < 0 ? "var(--accent)" : "inherit"); 
+    return v > 0 ? "var(--bad)" : (v < 0 ? "var(--accent)" : "inherit");
   }
 };
 
-// Logic: Check Signal
 function checkSignal(r, type) {
     if (type === 'ALL') return true;
-    let colVal = "";
-    if (type === 'TREND') colVal = r.Trend;
-    else if (type === 'PULLBACK') colVal = r.Pullback;
-    else if (type === 'BREAKOUT') colVal = r.Breakout;
-    if (String(colVal).toUpperCase() === 'TRUE') return true;
-    
-    // Fallback: Check combined string
-    const rowStr = Object.values(r).join(" ").toUpperCase();
-    const map = { 'TREND': '추세', 'PULLBACK': '눌림', 'BREAKOUT': '돌파' };
-    if (rowStr.includes(type) || rowStr.includes(map[type])) return true;
+    const s = (r.Trend+r.Pullback+r.Breakout+r.Signal_Type).toUpperCase();
+    if(type=='TREND' && (s.includes("TRUE") || s.includes("TREND") || s.includes("추세"))) return true;
+    if(type=='PULLBACK' && s.includes("PULLBACK")) return true;
+    if(type=='BREAKOUT' && s.includes("BREAKOUT")) return true;
     return false;
 }
 
-// Get Count Helper
-function getSigCount(r) {
-  let count = 0;
-  if(checkSignal(r, 'TREND')) count++;
-  if(checkSignal(r, 'PULLBACK')) count++;
-  if(checkSignal(r, 'BREAKOUT')) count++;
-  return count;
-}
-
-// Badges
 function getBadges(r) {
   let h = "";
   if(checkSignal(r, 'TREND')) h += '<span class="badge-sig sig-trend">추세</span>';
@@ -325,7 +241,6 @@ function getTypeBadge(t) {
   return t;
 }
 
-// Logic: Load Data
 async function load() {
   document.getElementById('statusLine').textContent = "Loading...";
   const ts = Date.now();
@@ -338,7 +253,6 @@ async function load() {
   }
   render();
   document.getElementById('statusLine').textContent = "Updated: " + new Date().toLocaleTimeString();
-  if(currentTab === 'insight') renderCharts();
 }
 
 function setTab(tab) {
@@ -347,14 +261,17 @@ function setTab(tab) {
   document.getElementById('view-'+tab).style.display = 'flex';
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
   document.getElementById('tab-'+tab).classList.add('on');
-  
   const filterGroup = document.getElementById('perfFilterGroup');
   filterGroup.style.display = (tab === 'perf') ? 'flex' : 'none';
-  
   if(tab === 'insight') renderCharts();
 }
 
-function switchList(mode) { currentMode = mode; render(); }
+function switchList(mode) { 
+  currentMode = mode; 
+  document.getElementById('listTitle').textContent = "리스트: " + mode;
+  render(); 
+}
+
 function setPerfFilter(f, btn) { 
   perfFilter = f; 
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
@@ -362,36 +279,23 @@ function setPerfFilter(f, btn) {
   render(); 
 }
 
-// Main Render Function (Fixed Logic)
 function render() {
-  // 1. Stats Calculation (from ALL data)
+  // 1. Stats
   if(data.ALL) {
     document.getElementById('statAll').textContent = data.ALL.length;
-    document.getElementById('statTrend').textContent = data.ALL.filter(r => checkSignal(r, 'TREND')).length;
-    document.getElementById('statPullback').textContent = data.ALL.filter(r => checkSignal(r, 'PULLBACK')).length;
-    document.getElementById('statBreakout').textContent = data.ALL.filter(r => checkSignal(r, 'BREAKOUT')).length;
+    document.getElementById('statTrend').textContent = data.TREND ? data.TREND.length : "-";
+    document.getElementById('statPullback').textContent = data.PULLBACK ? data.PULLBACK.length : "-";
+    document.getElementById('statBreakout').textContent = data.BREAKOUT ? data.BREAKOUT.length : "-";
   }
 
-  // 2. Screen View (Real-time Capture)
-  // [Fix] Filter 'ALL' data based on currentMode
-  const titleMap = { 'ALL': '전체보기', 'TREND': '추세', 'PULLBACK': '눌림', 'BREAKOUT': '돌파' };
-  document.getElementById('listTitle').textContent = `리스트: ${titleMap[currentMode] || currentMode}`;
-
-  let list = [];
-  if (currentMode === 'ALL') {
-    list = data.ALL || [];
-  } else {
-    // Filter from ALL data client-side (Robust method)
-    list = (data.ALL || []).filter(r => checkSignal(r, currentMode));
+  // 2. Screen View (기존 로직 사용)
+  let list = data[currentMode] || [];
+  // 만약 개별 시트 데이터가 없으면 ALL에서 필터링 시도 (안전장치)
+  if(list.length === 0 && data.ALL && currentMode !== 'ALL') {
+     list = data.ALL.filter(r => checkSignal(r, currentMode));
   }
 
-  const sortedList = [...list].sort((a, b) => {
-    const cB = getSigCount(b), cA = getSigCount(a);
-    if (cB !== cA) return cB - cA;
-    return (parseFloat(String(b.Turnover).replace(/,/g,''))||0) - (parseFloat(String(a.Turnover).replace(/,/g,''))||0);
-  });
-
-  document.getElementById('screenTbody').innerHTML = sortedList.map(r => `
+  document.getElementById('screenTbody').innerHTML = list.map(r => `
     <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
       <td class="col-code" style="color:var(--muted); font-family:monospace;">${r.Code}</td>
       <td class="col-name" style="font-weight:700;">${r.Name}</td>
@@ -399,7 +303,7 @@ function render() {
       <td class="numRight">${parseFloat(r.RSI14||0).toFixed(1)}</td>
       <td class="numRight">${parseFloat(r.Stoch_K||0).toFixed(1)}</td>
       <td class="numRight" style="color:var(--muted)">${fmt.turn(r.Turnover)}</td>
-      <td>${getBadges(r)}</td>
+      <td style="text-align:center">${getBadges(r)}</td>
     </tr>
   `).join('');
 
@@ -407,10 +311,10 @@ function render() {
   const daily = (data.DAILY||[]).slice().reverse();
   document.getElementById('dailyTbody').innerHTML = daily.map(r => `
     <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
-      <td class="col-date" style="color:var(--muted)">${(r.PickDate||"").split(' ')[0]}</td>
-      <td style="text-align:center;">${getTypeBadge(r.Type)}</td>
-      <td class="col-code">${r.Code}</td>
-      <td class="col-name" style="font-weight:700;">${r.Name}</td>
+      <td style="color:var(--muted)">${(r.PickDate||"").split(' ')[0]}</td>
+      <td style="text-align:center">${getTypeBadge(r.Type)}</td>
+      <td>${r.Code}</td>
+      <td style="font-weight:700;">${r.Name}</td>
       <td class="numRight">${fmt.price(r.EntryPrice)}</td>
       <td class="numRight" style="color:var(--good)">${fmt.price(r.TargetPrice1)}</td>
       <td class="numRight" style="color:var(--bad)">${fmt.price(r.StopPrice1)}</td>
@@ -426,12 +330,23 @@ function render() {
   let perf = (data.STORAGE||[]).slice().reverse();
   if(perfFilter !== 'ALL') perf = perf.filter(r => checkSignal(r, perfFilter));
   
+  // Best 5
+  const bestList = [...perf].sort((a,b) => parseFloat(b.Return)-parseFloat(a.Return)).slice(0,5);
+  document.getElementById('bestTbody').innerHTML = bestList.map(r => `
+    <tr onclick='openDetail(${JSON.stringify(r)})'>
+      <td>${(r.DetectDate||"").substring(5,10)}</td>
+      <td>${r.Name}</td>
+      <td>${getBadges(r)}</td>
+      <td style="text-align:right; font-weight:bold; color:var(--bad)">${fmt.pct(r.Return)}</td>
+    </tr>
+  `).join('');
+
   document.getElementById('perfTbody').innerHTML = perf.map(r => `
     <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
-      <td class="col-date" style="color:var(--muted)">${(r.DetectDate||"").split(' ')[0]}</td>
-      <td class="col-code">${r.Code}</td>
-      <td class="col-name" style="font-weight:700;">${r.Name}</td>
-      <td>${getBadges(r)}</td>
+      <td style="color:var(--muted)">${(r.DetectDate||"").split(' ')[0]}</td>
+      <td>${r.Code}</td>
+      <td style="font-weight:700;">${r.Name}</td>
+      <td style="text-align:center">${getBadges(r)}</td>
       <td class="numRight">${fmt.price(r.EntryPrice)}</td>
       <td class="numRight">${fmt.price(r.Close_Today)}</td>
       <td class="numRight" style="font-weight:700; color:${fmt.color(r.Return)}">${fmt.pct(r.Return)}</td>
@@ -442,12 +357,11 @@ function render() {
   `).join('');
 }
 
-// --- Detail & Chart ---
 function openDetail(r) {
   document.getElementById('detailPanel').style.display = 'flex';
   document.getElementById('detailName').textContent = r.Name;
   document.getElementById('detailCode').textContent = r.Code;
-  document.getElementById('valPrice').textContent = fmt.price(r.Close || r.Close_Today);
+  document.getElementById('valPrice').textContent = fmt.price(r.Close || r.Close_Today || r.EntryPrice);
   document.getElementById('valRSI').textContent = parseFloat(r.RSI14||0).toFixed(1);
   document.getElementById('valSignals').innerHTML = getBadges(r);
   
@@ -458,13 +372,10 @@ function openDetail(r) {
     "container_id": "chartContainer", "hide_top_toolbar": true
   });
 }
-function closeDetail() { document.getElementById('detailPanel').style.display = 'none'; }
 
-// --- AI Insight Charts ---
 function renderCharts() {
   const d = data.STORAGE || [];
   if(!d.length) return;
-
   const stats = { 'Trend':{w:0,t:0,sum:0}, 'Pullback':{w:0,t:0,sum:0}, 'Breakout':{w:0,t:0,sum:0} };
   d.forEach(r => {
     let ret = parseFloat(String(r.Return).replace('%',''));
@@ -473,53 +384,26 @@ function renderCharts() {
     if(checkSignal(r, 'PULLBACK')) { stats.Pullback.t++; stats.Pullback.sum+=ret; if(ret>0) stats.Pullback.w++; }
     if(checkSignal(r, 'BREAKOUT')) { stats.Breakout.t++; stats.Breakout.sum+=ret; if(ret>0) stats.Breakout.w++; }
   });
-
   const labels = ['Trend', 'Pullback', 'Breakout'];
   const winRates = labels.map(k => stats[k].t ? (stats[k].w/stats[k].t*100) : 0);
   const avgRets = labels.map(k => stats[k].t ? (stats[k].sum/stats[k].t) : 0);
 
   if(charts.win) charts.win.destroy();
-  charts.win = new Chart(document.getElementById('chartWinRate'), {
-    type: 'bar',
-    data: {
-      labels: ['추세', '눌림', '돌파'],
-      datasets: [{ label: '승률 (%)', data: winRates, backgroundColor: ['#34d399', '#fbbf24', '#fb7185'], borderRadius: 5 }]
-    },
-    options: { indexAxis: 'y', plugins: { legend: {display:false} }, scales: { x: {max: 100, grid:{color:'#1e293b'}}, y:{grid:{display:false}} } }
-  });
+  charts.win = new Chart(document.getElementById('chartWinRate'), { type: 'bar', data: { labels:['추세','눌림','돌파'], datasets:[{label:'승률', data:winRates, backgroundColor:['#34d399','#fbbf24','#fb7185']}] }, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{max:100, grid:{color:'#1e293b'}}, y:{grid:{display:false}}}} });
 
   if(charts.ret) charts.ret.destroy();
-  charts.ret = new Chart(document.getElementById('chartAvgReturn'), {
-    type: 'bar',
-    data: {
-      labels: ['추세', '눌림', '돌파'],
-      datasets: [{ label: '평균 수익 (%)', data: avgRets, backgroundColor: avgRets.map(v=>v>0?'#f43f5e':'#3b82f6'), borderRadius: 5 }]
-    },
-    options: { plugins: { legend: {display:false} }, scales: { y: {grid:{color:'#1e293b'}}, x:{grid:{display:false}} } }
-  });
+  charts.ret = new Chart(document.getElementById('chartAvgReturn'), { type: 'bar', data: { labels:['추세','눌림','돌파'], datasets:[{label:'평균수익', data:avgRets, backgroundColor:'#3b82f6'}] }, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'#1e293b'}}}} });
 
   const days = ['D1', 'D3', 'D5', 'D7', 'D9'];
   const dayAvgs = days.map(day => {
     let sum=0, cnt=0;
-    d.forEach(r => {
-      let v = parseFloat(String(r[day]).replace('%',''));
-      if(!isNaN(v)) { sum+=v; cnt++; }
-    });
+    d.forEach(r => { let v=parseFloat(String(r[day]).replace('%','')); if(!isNaN(v)){sum+=v; cnt++;} });
     return cnt ? (sum/cnt) : 0;
   });
-
   if(charts.ts) charts.ts.destroy();
-  charts.ts = new Chart(document.getElementById('chartTimeSeries'), {
-    type: 'line',
-    data: {
-      labels: days,
-      datasets: [{ label: '보유 기간별 평균 수익률', data: dayAvgs, borderColor: '#60a5fa', backgroundColor: 'rgba(96, 165, 250, 0.1)', fill: true, tension: 0.4 }]
-    },
-    options: { plugins: { legend: {display:false} }, scales: { y: {grid:{color:'#1e293b'}}, x:{grid:{display:false}} } }
-  });
+  charts.ts = new Chart(document.getElementById('chartTimeSeries'), { type: 'line', data: { labels:days, datasets:[{label:'수익추이', data:dayAvgs, borderColor:'#60a5fa', fill:true, backgroundColor:'rgba(96,165,250,0.1)'}] }, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'#1e293b'}}}} });
   
-  Chart.defaults.color = '#94a3b8';
-  Chart.defaults.borderColor = '#1e293b';
+  Chart.defaults.color = '#94a3b8'; Chart.defaults.borderColor = '#1e293b';
 }
 
 document.getElementById('btnRefresh').onclick = load;
