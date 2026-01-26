@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
-  <title>YJ K-Stock Quant Unified Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <title>YJ K-Stock Quant Dashboard PRO</title>
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <style>
     :root{
       --bg:#0b1220; --panel:#0f1a2e; --panel2:#0c1628; --line:rgba(148,163,184,.18);
@@ -15,79 +15,156 @@
       --sal: env(safe-area-inset-left); --sar: env(safe-area-inset-right);
     }
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    
     body{ 
       margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
       background: var(--bg); color:var(--txt); overflow:hidden; 
       height: 100vh; height: calc(var(--vh, 1vh) * 100); touch-action: manipulation;
       padding-top: var(--sat); padding-bottom: var(--sab); padding-left: var(--sal); padding-right: var(--sar);
     }
+    
     .app{ display:flex; flex-direction:column; height:100%; }
     .header-section { flex-shrink: 0; z-index: 100; background: var(--bg); }
-    .tabbar { margin: 15px 20px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-right: 20px; }
+    
+    .tabbar { 
+      margin: 15px 20px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; 
+      overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-right: 20px; 
+    }
     .tabbar::-webkit-scrollbar { display: none; }
-    .tab-btn { padding: 10px 18px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
-    .tab-btn.on { background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: #60a5fa; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-    #perfFilterGroup { display: none; align-items: center; gap: 6px; margin-left: 5px; padding-left: 15px; border-left: 1px solid var(--line); animation: fadeIn 0.3s ease-out; }
+    
+    .tab-btn { 
+      padding: 10px 18px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--panel); color: #fff; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: 0.2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .tab-btn.on { 
+      background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: #60a5fa;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); 
+    }
+
+    #perfFilterGroup {
+      display: none; align-items: center; gap: 6px; margin-left: 5px; padding-left: 15px;
+      border-left: 1px solid var(--line); animation: fadeIn 0.3s ease-out;
+    }
     @keyframes fadeIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
-    .filter-btn { background: var(--panel2); border: 1px solid var(--line); color: var(--muted); padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
-    .filter-btn.active { background: var(--txt); color: var(--bg) !important; border-color: var(--txt) !important; box-shadow: 0 0 8px rgba(255,255,255,0.2); }
+
+    .filter-btn {
+      background: var(--panel2); border: 1px solid var(--line); color: var(--muted);
+      padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: 0.2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .filter-btn:hover { background: rgba(255,255,255,0.05); }
+    .filter-btn.active {
+      background: var(--txt); color: var(--bg) !important; border-color: var(--txt) !important;
+      box-shadow: 0 0 8px rgba(255,255,255,0.2);
+    }
+    
     .filter-btn[data-filter="TREND"] { color: #34d399; border-color: rgba(52, 211, 153, 0.2); }
     .filter-btn[data-filter="PULLBACK"] { color: #fbbf24; border-color: rgba(251, 191, 36, 0.2); }
     .filter-btn[data-filter="BREAKOUT"] { color: #fb7185; border-color: rgba(251, 113, 133, 0.2); }
     .filter-btn[data-filter="SELL"] { color: #c084fc; border-color: rgba(192, 132, 252, 0.2); }
+
     .main{ flex:1; display:flex; overflow:hidden; padding: 0 20px 20px 20px; gap:20px; }
-    @media (max-width: 1024px) { .main { flex-direction: column; overflow-y: auto; padding: 0 12px 12px 12px; gap: 12px; } .content-area, #detailPanel { flex: none !important; width: 100% !important; height: auto !important; } #detailPanel { min-height: 520px; margin-bottom: 20px; } .table-container { max-height: 50vh; } }
+    
+    @media (max-width: 1024px) {
+      .main { flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 12px 12px 12px; gap: 12px; }
+      .content-area, #detailPanel { flex: none !important; width: 100% !important; height: auto !important; }
+      #detailPanel { min-height: 520px; margin-bottom: 20px; }
+      .table-container { max-height: 50vh; }
+    }
+
     .content-area { flex: 1.3; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-    #detailPanel { flex: 0.7; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); display: none; flex-direction: column; overflow: hidden; animation: slideIn 0.3s ease-out; }
+    
+    #detailPanel {
+      flex: 0.7; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); 
+      display: none; flex-direction: column; overflow: hidden; animation: slideIn 0.3s ease-out;
+    }
     @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
     .custom-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-    .table-container { flex: 1; background: var(--panel2); border-radius: var(--radius); border: 1px solid var(--line); position: relative; display: flex; flex-direction: column; overflow: hidden; }
+
+    .table-container {
+      flex: 1; background: var(--panel2); border-radius: var(--radius); border: 1px solid var(--line);
+      position: relative; display: flex; flex-direction: column; overflow: hidden;
+    }
     .table-responsive { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
+    
     table { width:100%; border-collapse:collapse; font-size:12px; min-width:820px; table-layout: fixed; }
     tr.clickable:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
-    th { background: #162136; color: var(--muted); padding: 12px 6px; text-align:left; position: sticky; top: 0; z-index: 20; border-bottom: 2px solid var(--accent); white-space: nowrap; }
+    tr.clickable:active { background: rgba(255,255,255,0.1); }
+    
+    th { 
+      background: #162136; color: var(--muted); padding: 12px 6px; text-align:left; 
+      position: sticky; top: 0; z-index: 20; border-bottom: 2px solid var(--accent); white-space: nowrap;
+    }
+    
     th.sortable { cursor: pointer; user-select: none; }
     th.sortable:hover { color: #fff; background: #1e2d4a; }
     th.sortable::after { content: " ↕"; font-size: 10px; opacity: 0.3; }
     th.sort-desc::after { content: " ↓"; opacity: 1; color: var(--accent); }
     th.sort-asc::after { content: " ↑"; opacity: 1; color: var(--accent); }
+
     td { padding: 10px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .numRight { text-align:right; font-family: 'Roboto Mono', monospace; }
-    .col-code { width: 60px; } .col-name { width: 110px; } .col-price { width: 85px; } .col-rsi { width: 60px; } .col-stoch { width: 65px; } .col-turn { width: 85px; } .col-sig { width: 140px; } .col-date { width: 85px; } .col-perf { width: 70px; } .col-sell { width: 65px; }
-    .col-type { width: 70px; text-align: center; } .col-target { width: 80px; text-align: right; color: var(--good); } .col-stop { width: 80px; text-align: right; color: var(--bad); }
+
+    /* 컬럼 너비 정의 */
+    .col-code { width: 60px; } .col-name { width: 110px; } .col-price { width: 85px; } .col-rsi { width: 60px; }
+    .col-stoch { width: 65px; } .col-turn { width: 85px; } .col-sig { width: 140px; } .col-date { width: 85px; }
+    .col-perf { width: 70px; } .col-sell { width: 65px; }
+    
+    /* Dailypick 전용 컬럼 너비 (요청하신 대로 추가) */
+    .col-type { width: 70px; text-align: center; }
+    .col-target { width: 80px; text-align: right; color: var(--good); }
+    .col-stop { width: 80px; text-align: right; color: var(--bad); }
+
     .top-stats-container { display: flex; justify-content: flex-start; margin-bottom: 15px; flex-shrink: 0; width: 100%; }
-    .mini-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; width: 100%; max-width: 520px; flex-shrink: 0; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .mini-card h4 { margin: 0 0 8px 0; font-size: 12px; font-weight: 800; color: var(--bad); border-bottom: 1px solid var(--line); padding-bottom: 5px; white-space: nowrap; }
+
+    .mini-card {
+      background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 10px;
+      width: 100%; max-width: 520px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: block;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+
+    .mini-card h4 { 
+      margin: 0 0 8px 0; font-size: 12px; font-weight: 800; color: var(--bad); 
+      border-bottom: 1px solid var(--line); padding-bottom: 5px; white-space: nowrap;
+    }
+
     .mini-table { width: 100%; min-width: 280px; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
     .mini-table th { background: none; padding: 4px 3px; color: var(--muted); border-bottom: 1px solid var(--line); font-weight: 800; text-align: left; white-space: nowrap; }
     .mini-table td { padding: 6px 3px; border-bottom: 1px solid rgba(255,255,255,0.03); overflow: hidden; text-overflow: ellipsis; }
+
     .best-date { width: 18% !important; color: var(--muted); font-family: 'Roboto Mono', monospace; }
     .best-name { width: 35% !important; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2; }
-    .best-sig { width: 27% !important; text-align: center; } .best-perf { width: 20% !important; text-align: right; }
-    .badge-sig { display: inline-flex; align-items: center; padding: 1px 3px; border-radius: 8px; font-size: 9px; font-weight: 800; margin-right: 1px; }
+    .best-sig  { width: 27% !important; text-align: center; }
+    .best-perf { width: 20% !important; text-align: right; }
+
+    .badge-sig { 
+      display: inline-flex; align-items: center; padding: 1px 3px; border-radius: 8px; font-size: 9px; font-weight: 800; margin-right: 1px; 
+    }
     .badge-sig::before { content: ""; width: 3px; height: 3px; border-radius: 50%; display: inline-block; margin-right: 2px; }
     .sig-trend { background: rgba(16, 185, 129, 0.15); color: #34d399; } .sig-trend::before { background: #34d399; }
     .sig-pullback { background: rgba(245, 158, 11, 0.15); color: #fbbf24; } .sig-pullback::before { background: #fbbf24; }
     .sig-breakout { background: rgba(239, 68, 68, 0.15); color: #fb7185; } .sig-breakout::before { background: #fb7185; }
+    .sig-sell { background: rgba(148, 163, 184, 0.15); color: #94a3b8; } .sig-sell::before { background: #94a3b8; }
+    .sig-alert { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+    /* Type Badges (Dailypick용) */
     .type-profit { background: rgba(239, 68, 68, 0.2); color: #fca5a5; } .type-profit::before { background: #fca5a5; }
     .type-winrate { background: rgba(245, 158, 11, 0.2); color: #fcd34d; } .type-winrate::before { background: #fcd34d; }
     .type-hidden { background: rgba(59, 130, 246, 0.2); color: #93c5fd; } .type-hidden::before { background: #93c5fd; }
-    .sig-sell { background: rgba(148, 163, 184, 0.15); color: #94a3b8; } .sig-sell::before { background: #94a3b8; }
-    .sig-alert { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); animation: pulse 2s infinite; }
+
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px; background: rgba(255,255,255,0.02); }
     .info-item { display: flex; flex-direction: column; gap: 4px; }
     .info-label { font-size: 11px; color: var(--muted); }
     .info-value { font-size: 16px; font-weight: 700; color: #fff; }
+
     .card { border:1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 10px; cursor: pointer; transition: 0.2s; }
     .card:hover { border-color: var(--accent); transform: translateY(-1px); }
-    /* Insight Grid */
-    .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: 100%; overflow-y: auto; padding-bottom: 20px; }
-    .insight-card { background: var(--panel2); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; }
-    .chart-box { flex: 1; min-height: 250px; position: relative; }
-    @media (max-width: 768px) { .insight-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -105,10 +182,9 @@
     </div>
 
     <div class="tabbar">
-      <button class="tab-btn on" onclick="setTab('screen')" id="tab-screen">🔎 실시간 포착</button>
-      <button class="tab-btn" onclick="setTab('daily')" id="tab-daily">📅 Dailypick</button>
-      <button class="tab-btn" onclick="setTab('perf')" id="tab-perf">📊 성과 추적</button>
-      <button class="tab-btn" onclick="setTab('insight')" id="tab-insight" style="background:rgba(96,165,250,0.1)">🧠 AI Insight</button>
+      <button class="tab-btn on" id="tabScreen">🔎 실시간 포착</button>
+      <button class="tab-btn" id="tabPerf">📊 성과 추적</button>
+      <button class="tab-btn" id="tabDaily">📅 Dailypick</button>
       
       <div id="perfFilterGroup">
         <button class="filter-btn active" onclick="setPerfFilter('ALL', this)" data-filter="ALL">전체</button>
@@ -122,7 +198,7 @@
   
   <div class="main">
     <div class="content-area">
-      <section id="view-screen" style="display: flex; flex-direction: column; height: 100%;">
+      <section id="screenView" style="display: flex; flex-direction: column; height: 100%;">
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:15px; flex-shrink: 0;">
           <div class="card" onclick="switchList('ALL')">
             <div style="font-size:10px; color:var(--muted); margin-bottom:4px;">전체</div>
@@ -165,55 +241,46 @@
         </div>
       </section>
 
-      <section id="view-daily" style="display:none; flex-direction: column; height: 100%;">
-        <div class="table-container">
-            <div style="padding: 10px; border-bottom: 1px solid var(--line); font-weight:700; background: var(--panel2); display:flex; justify-content:space-between; align-items: center;">
-              <span style="font-size:13px;">📅 Daily Pick 로그</span>
-            </div>
-            <div class="table-responsive custom-scroll">
-              <table style="min-width: 1200px;"> 
-                <thead>
-                  <tr>
-                    <th class="col-date">Pick일자</th>
-                    <th class="col-type">Type</th>
-                    <th class="col-code">코드</th>
-                    <th class="col-name">종목명</th>
-                    <th class="col-price numRight">진입가</th>
-                    <th class="col-target numRight">목표1</th>
-                    <th class="col-target numRight">목표2</th>
-                    <th class="col-stop numRight">손절1</th>
-                    <th class="col-stop numRight">손절2</th>
-                    <th class="col-price numRight">현재가</th>
-                    <th class="col-perf numRight">수익률</th>
-                    <th class="col-perf numRight">D1</th>
-                    <th class="col-perf numRight">D3</th>
-                    <th class="col-perf numRight">D5</th>
-                    <th class="col-perf numRight">D7</th>
-                    <th class="col-perf numRight">D9</th>
-                  </tr>
-                </thead>
-                <tbody id="dailyTbody"></tbody>
-              </table>
-            </div>
-          </div>
-      </section>
-
-      <section id="view-perf" style="display:none; flex-direction: column; height: 100%;">
+      <section id="perfView" style="display:none; flex-direction: column; height: 100%;">
         <div class="top-stats-container">
           <div class="mini-card">
             <h4 id="bestTitle">🔥 수익률 Best 5 (전체)</h4>
             <table class="mini-table">
-              <thead><tr><th class="best-date">포착일</th><th class="best-name">종목명</th><th class="best-sig">시그널</th><th class="best-perf">수익률</th></tr></thead>
+              <thead>
+                <tr>
+                  <th class="best-date">포착일</th>
+                  <th class="best-name">종목명</th>
+                  <th class="best-sig">시그널</th>
+                  <th class="best-perf">수익률</th>
+                </tr>
+              </thead>
               <tbody id="bestTbody"></tbody>
             </table>
           </div>
         </div>
+
         <div class="table-container">
+          <div style="padding: 10px; border-bottom: 1px solid var(--line); font-weight:700; background: var(--panel2); display:flex; justify-content:space-between; align-items: center;">
+            <span style="font-size:13px;">성과 추적 보드</span>
+            <span style="font-size:9px; color:var(--muted); font-weight:normal;">헤더 클릭 시 정렬</span>
+          </div>
           <div class="table-responsive custom-scroll">
             <table>
               <thead>
                 <tr>
-                  <th class="col-date">포착일</th><th class="col-code">코드</th><th class="col-name">종목명</th><th class="col-sig">시그널</th><th class="col-sell">매도신호</th><th class="col-price numRight">포착가</th><th class="col-price numRight">현재가</th><th class="col-perf numRight sortable" id="sort-Return">수익률</th><th class="col-perf numRight sortable" id="sort-D1">D1</th><th class="col-perf numRight sortable" id="sort-D3">D3</th><th class="col-perf numRight sortable" id="sort-D5">D5</th><th class="col-perf numRight sortable" id="sort-D7">D7</th><th class="col-perf numRight sortable" id="sort-D9">D9</th>
+                  <th class="col-date">포착일</th>
+                  <th class="col-code">코드</th>
+                  <th class="col-name">종목명</th>
+                  <th class="col-sig" style="text-align:center;">시그널</th>
+                  <th class="col-sell" style="text-align:center;">매도신호</th>
+                  <th class="col-price numRight">포착가</th>
+                  <th class="col-price numRight">현재가</th>
+                  <th class="col-perf numRight sortable" id="sort-Return">수익률</th>
+                  <th class="col-perf numRight sortable" id="sort-D1">D1</th>
+                  <th class="col-perf numRight sortable" id="sort-D3">D3</th>
+                  <th class="col-perf numRight sortable" id="sort-D5">D5</th>
+                  <th class="col-perf numRight sortable" id="sort-D7">D7</th>
+                  <th class="col-perf numRight sortable" id="sort-D9">D9</th>
                 </tr>
               </thead>
               <tbody id="perfTbody"></tbody>
@@ -222,13 +289,45 @@
         </div>
       </section>
 
-      <section id="view-insight" style="display:none; flex-direction:column; height:100%;">
-        <div class="insight-grid custom-scroll">
-          <div class="insight-card"><div style="margin-bottom:10px; font-weight:700;">📊 전략별 승률</div><div class="chart-box"><canvas id="chartWinRate"></canvas></div></div>
-          <div class="insight-card"><div style="margin-bottom:10px; font-weight:700;">💰 전략별 평균 수익</div><div class="chart-box"><canvas id="chartAvgReturn"></canvas></div></div>
-          <div class="insight-card" style="grid-column: span 2;"><div style="margin-bottom:10px; font-weight:700;">📈 기간별 수익 추이</div><div class="chart-box"><canvas id="chartTimeSeries"></canvas></div></div>
-        </div>
+      <section id="dailyView" style="display:none; flex-direction: column; height: 100%;">
+        <div class="table-container">
+            <div style="padding: 10px; border-bottom: 1px solid var(--line); font-weight:700; background: var(--panel2); display:flex; justify-content:space-between; align-items: center;">
+              <span style="font-size:13px;">📅 Daily Pick 로그 (전략 상세)</span>
+            </div>
+            <div class="table-responsive custom-scroll">
+              <table style="min-width: 1400px;"> <thead>
+                  <tr>
+                    <th class="col-date">Pick일자</th>
+                    <th class="col-type">Type</th>
+                    <th class="col-code">코드</th>
+                    <th class="col-name">종목명</th>
+                    <th class="col-price numRight">매수가</th>
+                    <th class="col-target numRight">목표1</th>
+                    <th class="col-target numRight">목표2</th>
+                    <th class="col-stop numRight">손절1</th>
+                    <th class="col-stop numRight">손절2</th>
+                    <th class="col-price numRight">현재가</th>
+                    <th class="col-perf numRight">보유수익</th>
+                    <th class="col-perf numRight">D1</th>
+                    <th class="col-perf numRight">D2</th>
+                    <th class="col-perf numRight">D3</th>
+                    <th class="col-perf numRight">D4</th>
+                    <th class="col-perf numRight">D5</th>
+                    <th class="col-perf numRight">D6</th>
+                    <th class="col-perf numRight">D7</th>
+                    <th class="col-perf numRight">D8</th>
+                    <th class="col-perf numRight">D9</th>
+                    <th class="col-price numRight" style="color:var(--accent)">실매도1</th>
+                    <th class="col-price numRight" style="color:var(--accent)">실매도2</th>
+                    <th class="col-perf numRight" style="font-weight:bold; color:var(--accent)">실수익</th>
+                  </tr>
+                </thead>
+                <tbody id="dailyTbody"></tbody>
+              </table>
+            </div>
+          </div>
       </section>
+
     </div>
 
     <div id="detailPanel">
@@ -263,6 +362,7 @@
 </div>
 
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
 <script>
 const setVh = () => {
   let vh = window.innerHeight * 0.01;
@@ -277,19 +377,17 @@ const URLS = {
   PULLBACK: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=852505203&single=true&output=csv",
   BREAKOUT: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=258627301&single=true&output=csv",
   STORAGE: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=2034892211&single=true&output=csv",
+  // 🔴 Dailypick URL (여기에 주소 입력)
   DAILY: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=1927472233&single=true&output=csv"
 };
 
 let data = { ALL:[], TREND:[], PULLBACK:[], BREAKOUT:[], STORAGE:[], DAILY:[] };
 let currentMode = 'ALL';
-let currentTab = 'screen';
 let perfSortKey = null; 
 let perfSortDir = 'original';
 let perfFilter = 'ALL'; 
-let charts = {};
 
 function parseCSV(text) {
-  if(!text) return [];
   const rows = [];
   const lines = text.split(/\r?\n/);
   for (let line of lines) {
@@ -344,14 +442,12 @@ function checkSignal(r, type) {
         const sheetSellSignal = String(r['매도신호'] || "").trim().toUpperCase();
         return (sheetSellSignal === "TRUE") || (bbUpper > 0 && current > (bbUpper * 1.03));
     }
-    // Only used for Perf tab or fallback
     let colVal = "";
     if (type === 'TREND') colVal = r.Trend;
     else if (type === 'PULLBACK') colVal = r.Pullback;
     else if (type === 'BREAKOUT') colVal = r.Breakout;
     
     if (String(colVal).toUpperCase() === 'TRUE') return true;
-    
     const rowStr = Object.values(r).join(" ").toUpperCase();
     const map = { 'TREND': '추세', 'PULLBACK': '눌림', 'BREAKOUT': '돌파' };
     if (rowStr.includes(type) || rowStr.includes(map[type])) return true;
@@ -453,9 +549,8 @@ function render() {
     document.getElementById('statBreakout').textContent = data.BREAKOUT ? data.BREAKOUT.length : "-";
   }
 
-  // --- Screen View Render (Github Logic) ---
+  // --- Screen View Render (기존 로직 유지) ---
   const list = data[currentMode] || [];
-  
   const sortedList = [...list].sort((a, b) => {
     const cB = getSigCount(b), cA = getSigCount(a);
     if (cB !== cA) return cB - cA;
@@ -524,7 +619,16 @@ function render() {
     </tr>
   `).join('');
 
-  // --- Dailypick View Render ---
+  // --- [NEW] Dailypick View Render ---
+  // A열(0)부터 S열(18)까지 매핑 (요청하신 순서대로)
+  // PickDate(0), Type(1), Code(2), Name(3), EntryPrice(4), Target1(5), Target2(6), Stop1(7), Stop2(8), 
+  // Close_Today(9), Return(10), D1(11)~D5(15), D6~D9(추가필요), Selling1(16), Selling2(17), ActualReturn(18)
+  
+  // *주의: CSV 파싱 결과는 객체(Key-Value) 형태이므로, 헤더 이름과 정확히 매칭해야 합니다.
+  // Apps Script에서 저장할 때 헤더 이름:
+  // "PickDate", "Type", "Code", "Name", "EntryPrice", "TargetPrice1", "TargetPrice2", "StopPrice1", "StopPrice2", 
+  // "Close_Today", "Return", "D1", "D3", "D5", "D7", "D9", "SellingPrice1", "SellingPrice2", "ActualReturn"
+  
   const dailyList = (data.DAILY || []).slice().reverse(); 
   document.getElementById('dailyTbody').innerHTML = dailyList.map(r => `
     <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
@@ -540,15 +644,22 @@ function render() {
       <td class="col-price numRight">${fmtPrice(r.Close_Today)}</td>
       <td class="col-perf numRight" style="color:${getPerfColor(r.Return)}; font-weight:700;">${getPctTxt(r.Return)}</td>
       <td class="col-perf numRight" style="color:${getPerfColor(r.D1)}">${getPctTxt(r.D1)}</td>
+      <td class="col-perf numRight" style="color:${getPerfColor(r.D2)}">${getPctTxt(r.D2)}</td>
       <td class="col-perf numRight" style="color:${getPerfColor(r.D3)}">${getPctTxt(r.D3)}</td>
+      <td class="col-perf numRight" style="color:${getPerfColor(r.D4)}">${getPctTxt(r.D4)}</td>
       <td class="col-perf numRight" style="color:${getPerfColor(r.D5)}">${getPctTxt(r.D5)}</td>
+      <td class="col-perf numRight" style="color:${getPerfColor(r.D6)}">${getPctTxt(r.D6)}</td>
       <td class="col-perf numRight" style="color:${getPerfColor(r.D7)}">${getPctTxt(r.D7)}</td>
+      <td class="col-perf numRight" style="color:${getPerfColor(r.D8)}">${getPctTxt(r.D8)}</td>
       <td class="col-perf numRight" style="color:${getPerfColor(r.D9)}">${getPctTxt(r.D9)}</td>
+      <td class="col-price numRight" style="color:var(--accent)">${fmtPrice(r.SellingPrice1)}</td>
+      <td class="col-price numRight" style="color:var(--accent)">${fmtPrice(r.SellingPrice2)}</td>
+      <td class="col-perf numRight" style="font-weight:bold; color:var(--accent)">${getPctTxt(r.ActualReturn)}</td>
     </tr>
   `).join('');
 }
 
-// Tab Switching
+// Tab Switching Logic
 const tabScreen = document.getElementById('tabScreen');
 const tabPerf = document.getElementById('tabPerf');
 const tabDaily = document.getElementById('tabDaily');
@@ -589,42 +700,6 @@ function switchList(mode) {
   currentMode = mode; 
   document.getElementById('listTitle').textContent = "리스트: " + (mode=='ALL'?'전체보기':mode);
   render(); 
-}
-
-// Insight Logic (Functions kept but Chart.js render logic removed as requested implicitly by reverting to "Github style" for screen logic, but keeping the tab structure as user didn't ask to remove tabs, just "fix the real-time tab". Wait, user said "Don't do weird stuff", so I will keep the renderCharts function skeleton to avoid errors if setTab calls it, but empty body if needed. Actually, I'll keep the function working for the Insight tab IF the user clicks it, but primarily focused on fixing Screen tab.)
-// To be safe and compliant: "실시간 포착 탭만 Github와 맞쳐주세요" -> Only touched Screen View logic. Insight code remains (as hidden tab/logic).
-
-function renderCharts() {
-  const d = data.STORAGE || [];
-  if(!d.length) return;
-  const stats = { 'Trend':{w:0,t:0,sum:0}, 'Pullback':{w:0,t:0,sum:0}, 'Breakout':{w:0,t:0,sum:0} };
-  d.forEach(r => {
-    let ret = parseFloat(String(r.Return).replace('%',''));
-    if(isNaN(ret)) return;
-    if(checkSignal(r, 'TREND')) { stats.Trend.t++; stats.Trend.sum+=ret; if(ret>0) stats.Trend.w++; }
-    if(checkSignal(r, 'PULLBACK')) { stats.Pullback.t++; stats.Pullback.sum+=ret; if(ret>0) stats.Pullback.w++; }
-    if(checkSignal(r, 'BREAKOUT')) { stats.Breakout.t++; stats.Breakout.sum+=ret; if(ret>0) stats.Breakout.w++; }
-  });
-  const labels = ['Trend', 'Pullback', 'Breakout'];
-  const winRates = labels.map(k => stats[k].t ? (stats[k].w/stats[k].t*100) : 0);
-  const avgRets = labels.map(k => stats[k].t ? (stats[k].sum/stats[k].t) : 0);
-
-  if(charts.win) charts.win.destroy();
-  charts.win = new Chart(document.getElementById('chartWinRate'), { type: 'bar', data: { labels:['추세','눌림','돌파'], datasets:[{label:'승률', data:winRates, backgroundColor:['#34d399','#fbbf24','#fb7185']}] }, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{max:100, grid:{color:'#1e293b'}}, y:{grid:{display:false}}}} });
-
-  if(charts.ret) charts.ret.destroy();
-  charts.ret = new Chart(document.getElementById('chartAvgReturn'), { type: 'bar', data: { labels:['추세','눌림','돌파'], datasets:[{label:'평균수익', data:avgRets, backgroundColor:'#3b82f6'}] }, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'#1e293b'}}}} });
-
-  const days = ['D1', 'D3', 'D5', 'D7', 'D9'];
-  const dayAvgs = days.map(day => {
-    let sum=0, cnt=0;
-    d.forEach(r => { let v=parseFloat(String(r[day]).replace('%','')); if(!isNaN(v)){sum+=v; cnt++;} });
-    return cnt ? (sum/cnt) : 0;
-  });
-  if(charts.ts) charts.ts.destroy();
-  charts.ts = new Chart(document.getElementById('chartTimeSeries'), { type: 'line', data: { labels:days, datasets:[{label:'수익추이', data:dayAvgs, borderColor:'#60a5fa', fill:true, backgroundColor:'rgba(96,165,250,0.1)'}] }, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:{color:'#1e293b'}}}} });
-  
-  Chart.defaults.color = '#94a3b8'; Chart.defaults.borderColor = '#1e293b';
 }
 
 document.getElementById('btnRefresh').onclick = load;
