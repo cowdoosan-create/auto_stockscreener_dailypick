@@ -778,7 +778,7 @@ function render() {
   if(minDt && maxDt){
     // ✅ 모바일에서는 3줄로 자연스럽게, 데스크탑에서는 가급적 한 줄 유지
     summaryEl.innerHTML =
-      `<span class="sum-range">${fmtMonthDay(minDt)} 부터 ${fmtMonthDay(maxDt)} 까</span>` +
+      `<span class="sum-range">${fmtMonthDay(minDt)} ~ ${fmtMonthDay(maxDt)} </span>` +
       `<span class="sum-text">종목 당 1천만원 매매 시</span>` +
       `<span class="sum-profit">총 수익 ${fmtWon(sumPnL)}원</span>`;
   }else{
