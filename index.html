@@ -696,7 +696,7 @@ function render() {
 
   const summaryEl = document.getElementById('dailySummary');
   if(minDt && maxDt){
-    summaryEl.textContent = `${fmtMonthDay(minDt)} 부터 ${fmtMonthDay(maxDt)} 까 종목 당 1천만원 매매 시 총 수익 ${fmtWon(sumPnL)}원`;
+    summaryEl.textContent = `${fmtMonthDay(minDt)} ~ ${fmtMonthDay(maxDt)} 종목 당 1천만원 매매 시 총 수익 ${fmtWon(sumPnL)}원`;
   }else{
     summaryEl.textContent = `기간/손익 계산 대기`;
   }
