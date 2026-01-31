@@ -363,7 +363,7 @@
       <section id="dailyView" style="display:none; flex-direction: column; height: 100%;">
         <div class="table-container">
           <div class="daily-header">
-            <span style="font-size:13px;">📅 Dailypick 로그(전략상세)</span>
+            <span style="font-size:13px;">📅 Dailypick 로그(목표가 매도/미도달 시 D5 종가 청산)</span>
             <span id="dailySummary" class="daily-summary"></span>
           </div>
 
@@ -779,7 +779,7 @@ function render() {
     // ✅ 모바일에서는 3줄로 자연스럽게, 데스크탑에서는 가급적 한 줄 유지
     summaryEl.innerHTML =
       `<span class="sum-range">${fmtMonthDay(minDt)} ~ ${fmtMonthDay(maxDt)} </span>` +
-      `<span class="sum-text">종목 당 1천만원 매매 시</span>` +
+      `<span class="sum-text">종목 당 1천만원 매매 시 </span>` +
       `<span class="sum-profit">총 수익 ${fmtWon(sumPnL)}원</span>`;
   }else{
     summaryEl.textContent = `기간/손익 계산 대기`;
@@ -799,7 +799,7 @@ function render() {
         const closeToday = pick(r, ["현재가","Close_Today","CloseToday","close_today","Close"]);
         const sell1 = pick(r, ["실매도1","Selling1","SellingPrice1","sell1"]);
         const sell2 = pick(r, ["실매도2","Selling2","SellingPrice2","sell2"]);
-        const ret = pick(r, ["ActualReturn","actualreturn","actual_return","실수익","실수익률","수익율(%)","수익률","Return"]);
+        const ret = pick(r, ["ActualReturn","actualreturn","actual_return"]);
         const pnlRaw = pick(r, ["gain/loss","Gain/Loss","gain_loss","gainloss","손익"]);
 
         const retNum = parseFloat(String(ret || "").replace('%',''));
