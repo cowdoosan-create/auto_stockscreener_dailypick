@@ -759,31 +759,52 @@ function render() {
   // --- Dailypick View ---
   const dp = (data.DAILYPICK || []).slice().reverse();
 
-  // e. 기간(최소~최대 Pick일자) + 손익 합계
-  let minDt = null, maxDt = null;
-  let sumPnL = 0;
+// e. 기간(최소~최대 Pick일자) + 손익 합계 + Pick/청산/보유 카운트
+let minDt = null, maxDt = null;
+let sumPnL = 0;
 
-  dp.forEach(r => {
-    const pickDate = pick(r, ["Pick일자","PickDate","pick_date","Date","date"]);
-    const dt = parsePickDate(pickDate);
-    if(dt){
-      if(!minDt || dt < minDt) minDt = dt;
-      if(!maxDt || dt > maxDt) maxDt = dt;
-    }
-    const pnlRaw = pick(r, ["gain/loss","Gain/Loss","gain_loss","gainloss","손익"]);
-    sumPnL += numFrom(pnlRaw);
-  });
+let totalPickCnt = dp.length;
+let closedCnt = 0; // 청산 종목 수(실매도1&2 존재 + 손익 발생)
+let holdingCnt = 0;
 
-  const summaryEl = document.getElementById('dailySummary');
-  if(minDt && maxDt){
-    // ✅ 모바일에서는 3줄로 자연스럽게, 데스크탑에서는 가급적 한 줄 유지
-    summaryEl.innerHTML =
-      `<span class="sum-range">${fmtMonthDay(minDt)} ~ ${fmtMonthDay(maxDt)} </span>` +
-      `<span class="sum-text">종목 당 1천만원 매매 시 </span>` +
-      `<span class="sum-profit">총 수익 ${fmtWon(sumPnL)}원</span>`;
-  }else{
-    summaryEl.textContent = `기간/손익 계산 대기`;
+dp.forEach(r => {
+  // 날짜 min/max
+  const pickDate = pick(r, ["Pick일자","PickDate","pick_date","Date","date"]);
+  const dt = parsePickDate(pickDate);
+  if (dt) {
+    if (!minDt || dt < minDt) minDt = dt;
+    if (!maxDt || dt > maxDt) maxDt = dt;
   }
+
+  // 손익 합계
+  const pnlRaw = pick(r, ["gain/loss","Gain/Loss","gain_loss","gainloss","손익"]);
+  const pnlNum = numFrom(pnlRaw);
+  sumPnL += pnlNum;
+
+  // 청산 판단: 실매도1 + 실매도2 값이 있고, 손익이 0이 아닌 경우
+  const sell1 = pick(r, ["실매도1","Selling1","SellingPrice1","sell1"]);
+  const sell2 = pick(r, ["실매도2","Selling2","SellingPrice2","sell2"]);
+
+  const hasSell1 = String(sell1 ?? "").trim() !== "" && numFrom(sell1) !== 0;
+  const hasSell2 = String(sell2 ?? "").trim() !== "" && numFrom(sell2) !== 0;
+  const hasPnL  = String(pnlRaw ?? "").trim() !== "" && pnlNum !== 0;
+
+  if (hasSell1 && hasSell2 && hasPnL) closedCnt++;
+});
+
+// 보유 = 전체 - 청산
+holdingCnt = Math.max(0, totalPickCnt - closedCnt);
+
+const summaryEl = document.getElementById('dailySummary');
+if (minDt && maxDt) {
+  summaryEl.textContent =
+    `${fmtMonthDay(minDt)} ~ ${fmtMonthDay(maxDt)} ` +
+    `Pick ${totalPickCnt}종목, 청산 ${closedCnt}종목, 보유 ${holdingCnt}종목, ` +
+    `종목 당 1천만원 매매 시 총 수익 ${fmtWon(sumPnL)}원`;
+} else {
+  summaryEl.textContent = `기간/손익 계산 대기`;
+}
+
 
   document.getElementById('dailyTbody').innerHTML = dp.length
     ? dp.map(r => {
