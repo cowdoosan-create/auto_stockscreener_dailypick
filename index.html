@@ -21,6 +21,10 @@
       background: var(--bg); color:var(--txt); overflow:hidden;
       height: 100vh; height: calc(var(--vh, 1vh) * 100); touch-action: manipulation;
       padding-top: var(--sat); padding-bottom: var(--sab); padding-left: var(--sal); padding-right: var(--sar);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-text-size-adjust: 100%;
+      text-rendering: optimizeLegibility;
     }
 
     .app{ display:flex; flex-direction:column; height:100%; }
@@ -150,6 +154,76 @@
     .sig-alert { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); animation: pulse 2s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
+    /* ✅ Dailypick Type Badge (승률/수익율/히든) */
+    .dp-badge{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: 10px; font-weight: 900; line-height: 1;
+      letter-spacing: -0.2px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      white-space: nowrap;
+    }
+    .dp-red{
+      background: rgba(239, 68, 68, 0.20);
+      border: 1px solid rgba(239, 68, 68, 0.40);
+      color: #fecaca;
+    }
+    .dp-yellow{
+      background: rgba(245, 158, 11, 0.20);
+      border: 1px solid rgba(245, 158, 11, 0.40);
+      color: #fde68a;
+    }
+    .dp-green{
+      background: rgba(34, 197, 94, 0.18);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #bbf7d0;
+    }
+    .dp-gray{
+      background: rgba(148, 163, 184, 0.15);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #e5e7eb;
+    }
+
+    /* ✅ Dailypick 헤더(요약문) 모바일 가독성 개선 */
+    .daily-header{
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      font-weight:700;
+      background: var(--panel2);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .daily-summary{
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.25;
+      text-align: right;
+      max-width: 70%;
+    }
+    .daily-summary span{ display:inline; }
+    .daily-summary .sum-profit{ color:#e5e7eb; font-weight:900; }
+
+    @media (max-width: 520px){
+      .daily-header{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .daily-summary{
+        max-width: 100%;
+        width: 100%;
+        text-align: left;
+        font-size: 12px;
+      }
+      .daily-summary span{
+        display:block;
+        white-space: normal;
+      }
+    }
+
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px; background: rgba(255,255,255,0.02); }
     .info-item { display: flex; flex-direction: column; gap: 4px; }
     .info-label { font-size: 11px; color: var(--muted); }
@@ -271,7 +345,6 @@
                   <th class="col-price numRight">포착가</th>
                   <th class="col-price numRight">현재가</th>
 
-                  <!-- ✅ 요청: 수익률/D1/D3/D5/D7/D9 헤더 클릭 정렬 -->
                   <th class="col-perf numRight sortable" id="sort-Return">수익률</th>
                   <th class="col-perf numRight sortable" id="sort-D1">D1</th>
                   <th class="col-perf numRight sortable" id="sort-D3">D3</th>
@@ -289,9 +362,9 @@
       <!-- Dailypick -->
       <section id="dailyView" style="display:none; flex-direction: column; height: 100%;">
         <div class="table-container">
-          <div style="padding: 10px; border-bottom: 1px solid var(--line); font-weight:700; background: var(--panel2); display:flex; justify-content:space-between; align-items: center; gap:10px;">
+          <div class="daily-header">
             <span style="font-size:13px;">📅 Dailypick 로그(전략상세)</span>
-            <span id="dailySummary" style="font-size:11px; color:var(--muted); font-weight:700; text-align:right; white-space:nowrap;"></span>
+            <span id="dailySummary" class="daily-summary"></span>
           </div>
 
           <div class="table-responsive custom-scroll">
@@ -304,7 +377,6 @@
                   <th class="col-name">종목명</th>
                   <th class="col-price numRight">매수가</th>
 
-                  <!-- a. 목표 빨강 / 손절 흰색 -->
                   <th class="col-target numRight">목표1</th>
                   <th class="col-target numRight">목표2</th>
                   <th class="col-stop numRight">손절1</th>
@@ -312,14 +384,10 @@
 
                   <th class="col-price numRight">현재가</th>
 
-                  <!-- b. 보유수익/D1/D3/D5/D7/D9 삭제 -->
-
-                  <!-- c. 실매도/실수익 헤더 변경 + 색상 -->
                   <th class="col-price numRight">실매도1(50%)</th>
                   <th class="col-price numRight">실매도2(50%)</th>
                   <th class="col-perf numRight">수익율(%)</th>
 
-                  <!-- d. 손익 추가 -->
                   <th class="col-pnl numRight">손익</th>
                 </tr>
               </thead>
@@ -512,6 +580,18 @@ function getBadges(r) {
   return h || "-";
 }
 
+/* ✅ Dailypick Type Badge: 승률=빨강, 수익율=노랑, 히든=초록 */
+function dailyTypeBadge(type){
+  const t = String(type || "").trim();
+  if(!t) return '<span class="dp-badge dp-gray">-</span>';
+
+  if (t.includes("승")) return '<span class="dp-badge dp-red">승률</span>';
+  if (t.includes("수익")) return '<span class="dp-badge dp-yellow">수익율</span>';
+  if (t.includes("히든")) return '<span class="dp-badge dp-green">히든</span>';
+
+  return `<span class="dp-badge dp-gray">${t}</span>`;
+}
+
 function openDetail(r) {
   const panel = document.getElementById('detailPanel');
   panel.style.display = 'flex';
@@ -696,7 +776,11 @@ function render() {
 
   const summaryEl = document.getElementById('dailySummary');
   if(minDt && maxDt){
-    summaryEl.textContent = `${fmtMonthDay(minDt)} ~ ${fmtMonthDay(maxDt)} 종목 당 1천만원 매매 시 총 수익 ${fmtWon(sumPnL)}원`;
+    // ✅ 모바일에서는 3줄로 자연스럽게, 데스크탑에서는 가급적 한 줄 유지
+    summaryEl.innerHTML =
+      `<span class="sum-range">${fmtMonthDay(minDt)} 부터 ${fmtMonthDay(maxDt)} 까</span>` +
+      `<span class="sum-text">종목 당 1천만원 매매 시</span>` +
+      `<span class="sum-profit">총 수익 ${fmtWon(sumPnL)}원</span>`;
   }else{
     summaryEl.textContent = `기간/손익 계산 대기`;
   }
@@ -724,29 +808,32 @@ function render() {
         return `
           <tr class="clickable" onclick='openDetail(${JSON.stringify({Code:code, Name:name, Close_Today:closeToday, EntryPrice:entry})})'>
             <td class="col-date" style="color:var(--muted)">${String(pickDate).split(' ')[0]}</td>
-            <td class="col-type" style="text-align:center; color:var(--muted)">${type || '-'}</td>
+
+            <!-- ✅ Type 뱃지 적용 -->
+            <td class="col-type" style="text-align:center;">${dailyTypeBadge(type)}</td>
+
             <td class="col-code" style="font-family:monospace;">${String(code).padStart(6,'0')}</td>
             <td class="col-name" style="font-weight:700;">${name || '-'}</td>
             <td class="col-price numRight">${fmtPrice(entry)}</td>
 
-            <!-- a. 목표 빨강 -->
+            <!-- 목표 빨강 -->
             <td class="col-target numRight" style="color:var(--bad); font-weight:700;">${fmtPrice(target1)}</td>
             <td class="col-target numRight" style="color:var(--bad); font-weight:700;">${fmtPrice(target2)}</td>
 
-            <!-- a. 손절 흰색 -->
+            <!-- 손절 흰색 -->
             <td class="col-stop numRight" style="color:#fff;">${fmtPrice(stop1)}</td>
             <td class="col-stop numRight" style="color:#fff;">${fmtPrice(stop2)}</td>
 
             <td class="col-price numRight">${fmtPrice(closeToday)}</td>
 
-            <!-- c. 실매도 흰색 -->
+            <!-- 실매도 흰색 -->
             <td class="col-price numRight" style="color:#fff;">${fmtPrice(sell1)}</td>
             <td class="col-price numRight" style="color:#fff;">${fmtPrice(sell2)}</td>
 
-            <!-- c. 수익율(%) +이면 빨강, 0/(-) 흰색 -->
+            <!-- 수익율(%) +이면 빨강 -->
             <td class="col-perf numRight" style="color:${retColor}; font-weight:800;">${fmtPct(ret)}</td>
 
-            <!-- d. 손익(₩000,000) -->
+            <!-- 손익 -->
             <td class="col-pnl numRight" style="color:#fff; font-weight:800;">${fmtWon(pnlRaw)}</td>
           </tr>
         `;
