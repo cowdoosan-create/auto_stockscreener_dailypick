@@ -799,7 +799,7 @@ function render() {
         const closeToday = pick(r, ["현재가","Close_Today","CloseToday","close_today","Close"]);
         const sell1 = pick(r, ["실매도1","Selling1","SellingPrice1","sell1"]);
         const sell2 = pick(r, ["실매도2","Selling2","SellingPrice2","sell2"]);
-        const ret = pick(r, ["수익율(%)","수익률","Return","ActualReturn","실수익"]);
+        const ret = pick(r, ["ActualReturn","actualreturn","actual_return","실수익","실수익률","수익율(%)","수익률","Return"]);
         const pnlRaw = pick(r, ["gain/loss","Gain/Loss","gain_loss","gainloss","손익"]);
 
         const retNum = parseFloat(String(ret || "").replace('%',''));
