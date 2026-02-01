@@ -810,9 +810,10 @@ function render() {
   holdingCnt = Math.max(0, totalPickCnt - closedCnt);
 
   const summaryEl = document.getElementById('dailySummary');
-  if (minDt && maxDt) {
+  if (minDt && (maxDt || cutoffDt)) {
+    const endDt = maxDt || cutoffDt; // 보통 maxDt = cutoffDt 이하에서의 최대
     summaryEl.textContent =
-      `${fmtMonthDay(minDt)} ~ ${fmtMonthDay(maxDt)} ` +
+      `${fmtMonthDay(minDt)} ~ ${fmtMonthDay(endDt)} ` +
       `Pick ${totalPickCnt}종목, 청산 ${closedCnt}종목, 보유 ${holdingCnt}종목, ` +
       `종목 당 1천만원 매매 시 총 수익 ${fmtWon(sumPnL)}원`;
   } else {
