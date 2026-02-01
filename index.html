@@ -771,54 +771,73 @@ function render() {
     : `<tr><td colspan="13" style="text-align:center; padding:20px; color:var(--muted);">해당 조건의 종목이 없습니다.</td></tr>`;
 
   // --- Dailypick View ---
-  const dp = (data.DAILYPICK || []).slice().reverse();
+const dp = (data.DAILYPICK || []).slice().reverse(); // (표 표시용: 전체 유지)
 
-  // e. 기간(최소~최대 Pick일자) + 손익 합계 + Pick/청산/보유 카운트
-  let minDt = null, maxDt = null;
-  let sumPnL = 0;
+// ✅ 1) 전체 데이터에서 가장 늦은 Pick일자(maxDtAll) 찾기
+let maxDtAll = null;
+dp.forEach(r => {
+  const pickDate = pick(r, ["Pick일자","PickDate","pick_date","Date","date"]);
+  const dt = parsePickDate(pickDate);
+  if (dt && (!maxDtAll || dt > maxDtAll)) maxDtAll = dt;
+});
 
-  let totalPickCnt = dp.length;
-  let closedCnt = 0; // 청산 종목 수(실매도1&2 존재 + 손익 발생)
-  let holdingCnt = 0;
+// ✅ 2) cutoffDt = (가장 늦은 날짜 - 1일)
+let cutoffDt = null;
+if (maxDtAll) {
+  cutoffDt = new Date(maxDtAll.getTime());
+  cutoffDt.setDate(cutoffDt.getDate() - 1);
+}
 
-  dp.forEach(r => {
-    // 날짜 min/max
-    const pickDate = pick(r, ["Pick일자","PickDate","pick_date","Date","date"]);
-    const dt = parsePickDate(pickDate);
-    if (dt) {
-      if (!minDt || dt < minDt) minDt = dt;
-      if (!maxDt || dt > maxDt) maxDt = dt;
-    }
+// ✅ 3) 요약/집계는 cutoffDt 이하만 사용
+const dpSummary = cutoffDt
+  ? dp.filter(r => {
+      const pickDate = pick(r, ["Pick일자","PickDate","pick_date","Date","date"]);
+      const dt = parsePickDate(pickDate);
+      return dt && dt <= cutoffDt;
+    })
+  : dp;
 
-    // 손익 합계
-    const pnlRaw = pick(r, ["gain/loss","Gain/Loss","gain_loss","gainloss","손익"]);
-    const pnlNum = numFrom(pnlRaw);
-    sumPnL += pnlNum;
+// ✅ 4) cutoff 기준으로 기간/손익/청산/보유 계산
+let minDt = null;
+let sumPnL = 0;
+let closedCnt = 0;
 
-    // 청산 판단: 실매도1 + 실매도2 값이 있고, 손익이 0이 아닌 경우
-    const sell1 = pick(r, ["실매도1","Selling1","SellingPrice1","sell1"]);
-    const sell2 = pick(r, ["실매도2","Selling2","SellingPrice2","sell2"]);
+dpSummary.forEach(r => {
+  // 기간 min
+  const pickDate = pick(r, ["Pick일자","PickDate","pick_date","Date","date"]);
+  const dt = parsePickDate(pickDate);
+  if (dt && (!minDt || dt < minDt)) minDt = dt;
 
-    const hasSell1 = String(sell1 ?? "").trim() !== "" && numFrom(sell1) !== 0;
-    const hasSell2 = String(sell2 ?? "").trim() !== "" && numFrom(sell2) !== 0;
-    const hasPnL  = String(pnlRaw ?? "").trim() !== "" && pnlNum !== 0;
+  // 손익 합계
+  const pnlRaw = pick(r, ["gain/loss","Gain/Loss","gain_loss","gainloss","손익"]);
+  const pnlNum = numFrom(pnlRaw);
+  sumPnL += pnlNum;
 
-    if (hasSell1 && hasSell2 && hasPnL) closedCnt++;
-  });
+  // 청산 판단: 실매도1 + 실매도2 값이 있고, 손익이 0이 아닌 경우
+  const sell1 = pick(r, ["실매도1","Selling1","SellingPrice1","sell1"]);
+  const sell2 = pick(r, ["실매도2","Selling2","SellingPrice2","sell2"]);
 
-  // 보유 = 전체 - 청산
-  holdingCnt = Math.max(0, totalPickCnt - closedCnt);
+  const hasSell1 = String(sell1 ?? "").trim() !== "" && numFrom(sell1) !== 0;
+  const hasSell2 = String(sell2 ?? "").trim() !== "" && numFrom(sell2) !== 0;
+  const hasPnL  = String(pnlRaw ?? "").trim() !== "" && pnlNum !== 0;
 
-  const summaryEl = document.getElementById('dailySummary');
-  if (minDt && (maxDt || cutoffDt)) {
-    const endDt = maxDt || cutoffDt; // 보통 maxDt = cutoffDt 이하에서의 최대
-    summaryEl.textContent =
-      `${fmtMonthDay(minDt)} ~ ${fmtMonthDay(endDt)} ` +
-      `Pick ${totalPickCnt}종목, 청산 ${closedCnt}종목, 보유 ${holdingCnt}종목, ` +
-      `종목 당 1천만원 매매 시 총 수익 ${fmtWon(sumPnL)}원`;
-  } else {
-    summaryEl.textContent = `기간/손익 계산 대기`;
-  }
+  if (hasSell1 && hasSell2 && hasPnL) closedCnt++;
+});
+
+const totalPickCnt = dpSummary.length;
+const holdingCnt = Math.max(0, totalPickCnt - closedCnt);
+
+// ✅ 5) 표시 종료일은 "cutoffDt"로 고정
+const summaryEl = document.getElementById('dailySummary');
+if (minDt && cutoffDt && totalPickCnt > 0) {
+  summaryEl.textContent =
+    `${fmtMonthDay(minDt)} ~ ${fmtMonthDay(cutoffDt)} ` +
+    `Pick ${totalPickCnt}종목, 청산 ${closedCnt}종목, 보유 ${holdingCnt}종목, ` +
+    `종목 당 1천만원 매매 시 총 수익 ${fmtWon(sumPnL)}원`;
+} else {
+  summaryEl.textContent = `기간/손익 계산 대기`;
+}
+
 
   document.getElementById('dailyTbody').innerHTML = dp.length
     ? dp.map(r => {
